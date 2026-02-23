@@ -1,12 +1,13 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import type { TimeInterval, ChartDataState } from '../types';
-import { fetchFinnhubCandles, fetchFinnhubQuote } from '../services/finnhub';
+import { fetchAlpacaCandles, fetchAlpacaQuote } from '../services/alpaca';
 
-interface UseFinnhubDataOptions {
+interface UseAlpacaDataOptions {
   symbol: string;
   interval: TimeInterval;
   refreshSeconds: number;
   apiKey: string;
+  apiSecret: string;
 }
 
 const initialState: ChartDataState = {
@@ -19,30 +20,30 @@ const initialState: ChartDataState = {
   lastUpdated: 0,
 };
 
-export function useFinnhubData({
+export function useAlpacaData({
   symbol,
   interval,
   refreshSeconds,
   apiKey,
-}: UseFinnhubDataOptions): ChartDataState {
+  apiSecret,
+}: UseAlpacaDataOptions): ChartDataState {
   const [state, setState] = useState<ChartDataState>(initialState);
   const intervalRef = useRef<number | null>(null);
 
-  // Fetch all data (candles + quote)
   const fetchData = useCallback(async () => {
-    if (!apiKey) {
+    if (!apiKey || !apiSecret) {
       setState((prev) => ({
         ...prev,
         loading: false,
-        error: 'Finnhub API key required. Add it in settings.',
+        error: 'Alpaca API credentials required. Add them in settings.',
       }));
       return;
     }
 
     try {
       const [candles, quote] = await Promise.all([
-        fetchFinnhubCandles(symbol, interval, apiKey),
-        fetchFinnhubQuote(symbol, apiKey),
+        fetchAlpacaCandles(symbol, interval, apiKey, apiSecret),
+        fetchAlpacaQuote(symbol, apiKey, apiSecret),
       ]);
 
       setState({
@@ -58,27 +59,24 @@ export function useFinnhubData({
       setState((prev) => ({
         ...prev,
         loading: false,
-        error: error instanceof Error ? error.message : 'Failed to fetch data',
+        error: error instanceof Error ? error.message : 'Failed to fetch stock data',
       }));
     }
-  }, [symbol, interval, apiKey]);
+  }, [symbol, interval, apiKey, apiSecret]);
 
-  // Setup effect
   useEffect(() => {
-    // Initial fetch
+    setState(initialState);
     fetchData();
 
-    // Setup polling interval
     intervalRef.current = window.setInterval(fetchData, refreshSeconds * 1000);
 
-    // Cleanup
     return () => {
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
         intervalRef.current = null;
       }
     };
-  }, [symbol, interval, refreshSeconds, apiKey, fetchData]);
+  }, [symbol, interval, refreshSeconds, fetchData]);
 
   return state;
 }

@@ -1,7 +1,8 @@
 import { Chart } from './Chart';
 import type { ChartConfig, ChartDataState } from '../types';
 import { useBinanceData } from '../hooks/useBinanceData';
-import { useYahooData } from '../hooks/useYahooData';
+import { useStockData } from '../hooks/useStockData';
+import { useDashboard } from '../context/DashboardContext';
 import { formatPrice, formatPercentChange, getDisplaySymbol, formatDateTime } from '../services/dataAdapter';
 
 interface ChartPanelProps {
@@ -9,7 +10,10 @@ interface ChartPanelProps {
 }
 
 export function ChartPanel({ config }: ChartPanelProps) {
-  // Use appropriate data hook based on asset type
+  const { state } = useDashboard();
+  const { alpacaCredentials } = state.config;
+
+  // Use Binance for crypto
   const binanceData = useBinanceData({
     symbol: config.symbol,
     interval: config.interval,
@@ -17,15 +21,16 @@ export function ChartPanel({ config }: ChartPanelProps) {
     useWebSocket: false,
   });
 
-  // Use Yahoo Finance for stocks (free, no API key required)
-  const yahooData = useYahooData({
+  // Use Yahoo Finance with Alpaca fallback for stocks
+  const stockData = useStockData({
     symbol: config.symbol,
     interval: config.interval,
     refreshSeconds: config.refreshSeconds,
+    alpacaApiKey: alpacaCredentials?.apiKey || '',
+    alpacaApiSecret: alpacaCredentials?.apiSecret || '',
   });
 
-  // Select the right data based on asset type
-  const data: ChartDataState = config.type === 'crypto' ? binanceData : yahooData;
+  const data: ChartDataState = config.type === 'crypto' ? binanceData : stockData;
 
   const displaySymbol = getDisplaySymbol(config.symbol, config.type);
   const priceFormatted = data.currentPrice > 0 ? formatPrice(data.currentPrice, config.symbol) : '--';

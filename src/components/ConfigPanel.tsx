@@ -19,9 +19,13 @@ const INTERVALS: TimeInterval[] = ['1m', '5m', '15m', '1h', '4h', '1d', '1w'];
 const REFRESH_OPTIONS = [30, 60, 120, 300, 600, 900];
 
 export function ConfigPanel() {
-  const { state, toggleConfig, updateLayout, addChart, removeChart, updateChart } =
+  const { state, toggleConfig, updateLayout, addChart, removeChart, updateChart, setAlpacaCredentials } =
     useDashboard();
   const { config, isConfigOpen } = state;
+
+  // Alpaca credentials state
+  const [alpacaKey, setAlpacaKey] = useState(config.alpacaCredentials?.apiKey || '');
+  const [alpacaSecret, setAlpacaSecret] = useState(config.alpacaCredentials?.apiSecret || '');
 
   // New chart form state
   const [newSymbol, setNewSymbol] = useState('');
@@ -100,7 +104,7 @@ export function ConfigPanel() {
           <section className="config-section">
             <h3>Add Chart</h3>
             <p className="section-note">
-              Crypto data from Binance • Stock data from Yahoo Finance (no API key required)
+              Crypto data from Binance • Stock data from Yahoo Finance (Alpaca fallback)
             </p>
             <div className="add-chart-form">
               <div className="form-row type-selector">
@@ -173,6 +177,50 @@ export function ConfigPanel() {
               >
                 Add Chart
               </button>
+            </div>
+          </section>
+
+          {/* Alpaca API Section */}
+          <section className="config-section">
+            <h3>
+              Alpaca API
+              <span className="tooltip-wrapper">
+                <span className="info-icon">?</span>
+                <span className="tooltip">Used as fallback when Yahoo Finance fails to fetch data</span>
+              </span>
+            </h3>
+            <p className="section-note">
+              Get free API keys at <a href="https://alpaca.markets" target="_blank" rel="noopener noreferrer">alpaca.markets</a>
+            </p>
+            <div className="alpaca-credentials">
+              <div className="form-row">
+                <input
+                  type="text"
+                  placeholder="API Key ID"
+                  value={alpacaKey}
+                  onChange={(e) => setAlpacaKey(e.target.value)}
+                  className="alpaca-input"
+                />
+              </div>
+              <div className="form-row">
+                <input
+                  type="password"
+                  placeholder="API Secret Key"
+                  value={alpacaSecret}
+                  onChange={(e) => setAlpacaSecret(e.target.value)}
+                  className="alpaca-input"
+                />
+              </div>
+              <button
+                className="save-alpaca-btn"
+                onClick={() => setAlpacaCredentials({ apiKey: alpacaKey, apiSecret: alpacaSecret })}
+                disabled={!alpacaKey.trim() || !alpacaSecret.trim()}
+              >
+                Save Credentials
+              </button>
+              {config.alpacaCredentials?.apiKey && (
+                <p className="credentials-status">Credentials saved</p>
+              )}
             </div>
           </section>
 

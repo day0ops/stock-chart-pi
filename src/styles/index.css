@@ -490,6 +490,66 @@ body {
   margin-bottom: 8px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.tooltip-wrapper {
+  position: relative;
+  display: inline-flex;
+}
+
+.info-icon {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background-color: var(--bg-tertiary);
+  color: var(--text-muted);
+  font-size: 10px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: help;
+  text-transform: none;
+}
+
+.tooltip {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 8px);
+  transform: translateX(-50%);
+  padding: 8px 12px;
+  background-color: var(--bg-primary);
+  border: 1px solid var(--border-primary);
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--text-primary);
+  white-space: nowrap;
+  text-transform: none;
+  letter-spacing: normal;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.15s ease, visibility 0.15s ease;
+  z-index: 100;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: var(--border-primary);
+}
+
+.tooltip-wrapper:hover .tooltip {
+  opacity: 1;
+  visibility: visible;
 }
 
 .section-note {
@@ -660,6 +720,72 @@ body {
 
 .type-icon {
   font-size: 16px;
+}
+
+/* Alpaca credentials */
+.alpaca-credentials {
+  margin-top: 12px;
+  padding: 12px;
+  background-color: var(--bg-tertiary);
+  border-radius: 8px;
+}
+
+.alpaca-credentials .section-note {
+  margin-bottom: 12px;
+}
+
+.alpaca-credentials .section-note a {
+  color: var(--accent-primary);
+  text-decoration: none;
+}
+
+.alpaca-credentials .section-note a:hover {
+  text-decoration: underline;
+}
+
+.alpaca-input {
+  width: 100%;
+  padding: 10px 12px;
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
+  border-radius: 6px;
+  color: var(--text-primary);
+  font-size: 14px;
+}
+
+.alpaca-input:focus {
+  outline: none;
+  border-color: var(--accent-primary);
+}
+
+.save-alpaca-btn {
+  width: 100%;
+  padding: 10px;
+  margin-top: 8px;
+  background-color: var(--accent-primary);
+  border: none;
+  border-radius: 6px;
+  color: white;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+
+.save-alpaca-btn:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.save-alpaca-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.credentials-status {
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--positive);
+  text-align: center;
 }
 
 /* Symbol row full width */

@@ -100,8 +100,53 @@ async function fetchBinanceSymbols(): Promise<SymbolInfo[]> {
   }
 }
 
-// Search stocks using Yahoo Finance autocomplete
-async function searchYahooSymbols(query: string): Promise<SymbolInfo[]> {
+// Search stocks using Alpaca API
+async function searchAlpacaSymbols(query: string, apiKey: string, apiSecret: string): Promise<SymbolInfo[]> {
+  if (!apiKey || !apiSecret) {
+    return [];
+  }
+
+  try {
+    // Alpaca assets endpoint with search
+    const url = `https://paper-api.alpaca.markets/v2/assets?status=active&asset_class=us_equity`;
+    const response = await fetch(url, {
+      headers: {
+        'APCA-API-KEY-ID': apiKey,
+        'APCA-API-SECRET-KEY': apiSecret,
+      },
+    });
+
+    if (!response.ok) {
+      return [];
+    }
+
+    const assets = await response.json();
+    const normalizedQuery = query.toUpperCase();
+
+    // Filter and map assets that match the query
+    const matches = assets
+      .filter((a: { symbol: string; name: string; tradable: boolean }) =>
+        a.tradable && (
+          a.symbol.includes(normalizedQuery) ||
+          a.name.toUpperCase().includes(normalizedQuery)
+        )
+      )
+      .slice(0, 15)
+      .map((a: { symbol: string; name: string; exchange: string }) => ({
+        symbol: a.symbol,
+        name: a.name,
+        type: 'stock' as const,
+        exchange: a.exchange,
+      }));
+
+    return matches;
+  } catch {
+    return [];
+  }
+}
+
+// Search stocks using Yahoo Finance autocomplete, with Alpaca fallback
+async function searchYahooSymbols(query: string, alpacaKey?: string, alpacaSecret?: string): Promise<SymbolInfo[]> {
   if (query.length < 1) {
     return POPULAR_STOCKS;
   }
@@ -117,9 +162,8 @@ async function searchYahooSymbols(query: string): Promise<SymbolInfo[]> {
     s.name.toLowerCase().includes(query.toLowerCase())
   );
 
-  // Always query Yahoo Finance to find non-popular stocks
+  // Try Yahoo Finance first
   try {
-    // Use Yahoo Finance search/autocomplete endpoint
     const url = `https://query1.finance.yahoo.com/v1/finance/search?q=${encodeURIComponent(query)}&quotesCount=15&newsCount=0`;
 
     let response = await fetch(url);
@@ -130,45 +174,74 @@ async function searchYahooSymbols(query: string): Promise<SymbolInfo[]> {
       response = await fetch(proxyUrl);
     }
 
-    if (!response.ok) {
-      return popularMatches.length > 0 ? popularMatches : POPULAR_STOCKS.slice(0, 10);
-    }
+    if (response.ok) {
+      const data = await response.json();
+      const quotes = data.quotes || [];
 
-    const data = await response.json();
-    const quotes = data.quotes || [];
+      const symbols: SymbolInfo[] = quotes
+        .filter((q: { quoteType: string; isYahooFinance: boolean }) =>
+          q.quoteType === 'EQUITY' && q.isYahooFinance
+        )
+        .slice(0, 15)
+        .map((q: { symbol: string; shortname?: string; longname?: string; exchange?: string }) => ({
+          symbol: q.symbol,
+          name: q.shortname || q.longname || q.symbol,
+          type: 'stock' as const,
+          exchange: q.exchange,
+        }));
 
-    const symbols: SymbolInfo[] = quotes
-      .filter((q: { quoteType: string; isYahooFinance: boolean }) =>
-        q.quoteType === 'EQUITY' && q.isYahooFinance
-      )
-      .slice(0, 15)
-      .map((q: { symbol: string; shortname?: string; longname?: string; exchange?: string }) => ({
-        symbol: q.symbol,
-        name: q.shortname || q.longname || q.symbol,
-        type: 'stock' as const,
-        exchange: q.exchange,
-      }));
+      // Merge with popular matches
+      const merged = [...popularMatches];
+      for (const sym of symbols) {
+        if (!merged.find(m => m.symbol === sym.symbol)) {
+          merged.push(sym);
+        }
+      }
 
-    // Merge with popular matches
-    const merged = [...popularMatches];
-    for (const sym of symbols) {
-      if (!merged.find(m => m.symbol === sym.symbol)) {
-        merged.push(sym);
+      if (merged.length > 0) {
+        stockSearchCache.set(cacheKey, merged.slice(0, 15));
+        return merged.slice(0, 15);
       }
     }
-
-    stockSearchCache.set(cacheKey, merged.slice(0, 15));
-    return merged.slice(0, 15);
   } catch {
-    return popularMatches.length > 0 ? popularMatches : POPULAR_STOCKS.slice(0, 10);
+    // Yahoo failed, try Alpaca
   }
+
+  // Fallback to Alpaca if Yahoo failed and credentials are available
+  if (alpacaKey && alpacaSecret) {
+    const alpacaResults = await searchAlpacaSymbols(query, alpacaKey, alpacaSecret);
+    if (alpacaResults.length > 0) {
+      const merged = [...popularMatches];
+      for (const sym of alpacaResults) {
+        if (!merged.find(m => m.symbol === sym.symbol)) {
+          merged.push(sym);
+        }
+      }
+      stockSearchCache.set(cacheKey, merged.slice(0, 15));
+      return merged.slice(0, 15);
+    }
+  }
+
+  // If all else fails, add the query as a potential symbol
+  const queryAsSymbol: SymbolInfo = {
+    symbol: query.toUpperCase(),
+    name: query.toUpperCase(),
+    type: 'stock',
+  };
+
+  const results = popularMatches.length > 0
+    ? popularMatches
+    : [queryAsSymbol, ...POPULAR_STOCKS.slice(0, 9)];
+
+  return results;
 }
 
 // Search symbols based on type
 export async function searchSymbols(
   query: string,
   type: 'crypto' | 'stock',
-  _apiKey?: string // Kept for backwards compatibility, not needed anymore
+  alpacaKey?: string,
+  alpacaSecret?: string
 ): Promise<SymbolInfo[]> {
   const normalizedQuery = query.trim().toUpperCase();
 
@@ -181,7 +254,7 @@ export async function searchSymbols(
       )
       .slice(0, 15);
   } else {
-    return searchYahooSymbols(query);
+    return searchYahooSymbols(query, alpacaKey, alpacaSecret);
   }
 }
 

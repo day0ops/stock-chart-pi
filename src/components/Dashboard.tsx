@@ -2,7 +2,7 @@ import { ChartPanel } from './ChartPanel';
 import { useDashboard } from '../context/DashboardContext';
 
 export function Dashboard() {
-  const { state } = useDashboard();
+  const { state, toggleConfig } = useDashboard();
   const { layout, charts } = state.config;
 
   // Calculate grid template based on layout
@@ -23,7 +23,7 @@ export function Dashboard() {
       {/* Fill empty slots if needed */}
       {visibleCharts.length < maxCharts &&
         Array.from({ length: maxCharts - visibleCharts.length }).map((_, i) => (
-          <div key={`empty-${i}`} className="chart-panel empty">
+          <div key={`empty-${i}`} className="chart-panel empty" onClick={toggleConfig}>
             <div className="empty-slot">
               <span>+</span>
               <span>Add Chart</span>
