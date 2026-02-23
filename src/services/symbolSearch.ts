@@ -117,10 +117,7 @@ async function searchYahooSymbols(query: string): Promise<SymbolInfo[]> {
     s.name.toLowerCase().includes(query.toLowerCase())
   );
 
-  if (popularMatches.length >= 5) {
-    return popularMatches;
-  }
-
+  // Always query Yahoo Finance to find non-popular stocks
   try {
     // Use Yahoo Finance search/autocomplete endpoint
     const url = `https://query1.finance.yahoo.com/v1/finance/search?q=${encodeURIComponent(query)}&quotesCount=15&newsCount=0`;
