@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useReducer } from 'react';
 import type { ReactNode } from 'react';
-import type { DashboardConfig, DashboardState, DashboardAction, ChartConfig, LayoutConfig, StockDataSource, AlpacaCredentials } from '../types';
+import type { DashboardConfig, DashboardState, DashboardAction, ChartConfig, LayoutConfig, AlpacaCredentials } from '../types';
 import defaultConfig from '../config/dashboard.json';
 
 const STORAGE_KEY = 'dashboard-config';
@@ -97,12 +97,6 @@ function dashboardReducer(state: DashboardState, action: DashboardAction): Dashb
       return { ...state, isConfigOpen: !state.isConfigOpen };
     }
 
-    case 'SET_STOCK_DATA_SOURCE': {
-      const newConfig = { ...state.config, stockDataSource: action.payload };
-      saveConfig(newConfig);
-      return { ...state, config: newConfig };
-    }
-
     case 'SET_ALPACA_CREDENTIALS': {
       const newConfig = { ...state.config, alpacaCredentials: action.payload };
       saveConfig(newConfig);
@@ -124,7 +118,6 @@ interface DashboardContextType {
   updateChart: (chart: ChartConfig) => void;
   updateLayout: (layout: LayoutConfig) => void;
   toggleConfig: () => void;
-  setStockDataSource: (source: StockDataSource) => void;
   setAlpacaCredentials: (credentials: AlpacaCredentials) => void;
 }
 
@@ -155,10 +148,6 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     dispatch({ type: 'TOGGLE_CONFIG' });
   };
 
-  const setStockDataSource = (source: StockDataSource) => {
-    dispatch({ type: 'SET_STOCK_DATA_SOURCE', payload: source });
-  };
-
   const setAlpacaCredentials = (credentials: AlpacaCredentials) => {
     dispatch({ type: 'SET_ALPACA_CREDENTIALS', payload: credentials });
   };
@@ -173,7 +162,6 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
         updateChart,
         updateLayout,
         toggleConfig,
-        setStockDataSource,
         setAlpacaCredentials,
       }}
     >

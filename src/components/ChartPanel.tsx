@@ -1,8 +1,7 @@
 import { Chart } from './Chart';
 import type { ChartConfig, ChartDataState } from '../types';
 import { useBinanceData } from '../hooks/useBinanceData';
-import { useYahooData } from '../hooks/useYahooData';
-import { useAlpacaData } from '../hooks/useAlpacaData';
+import { useStockData } from '../hooks/useStockData';
 import { useDashboard } from '../context/DashboardContext';
 import { formatPrice, formatPercentChange, getDisplaySymbol, formatDateTime } from '../services/dataAdapter';
 
@@ -12,9 +11,9 @@ interface ChartPanelProps {
 
 export function ChartPanel({ config }: ChartPanelProps) {
   const { state } = useDashboard();
-  const { stockDataSource, alpacaCredentials } = state.config;
+  const { alpacaCredentials } = state.config;
 
-  // Use appropriate data hook based on asset type
+  // Use Binance for crypto
   const binanceData = useBinanceData({
     symbol: config.symbol,
     interval: config.interval,
@@ -22,29 +21,16 @@ export function ChartPanel({ config }: ChartPanelProps) {
     useWebSocket: false,
   });
 
-  const yahooData = useYahooData({
+  // Use Yahoo Finance with Alpaca fallback for stocks
+  const stockData = useStockData({
     symbol: config.symbol,
     interval: config.interval,
     refreshSeconds: config.refreshSeconds,
+    alpacaApiKey: alpacaCredentials?.apiKey || '',
+    alpacaApiSecret: alpacaCredentials?.apiSecret || '',
   });
 
-  const alpacaData = useAlpacaData({
-    symbol: config.symbol,
-    interval: config.interval,
-    refreshSeconds: config.refreshSeconds,
-    apiKey: alpacaCredentials.apiKey,
-    apiSecret: alpacaCredentials.apiSecret,
-  });
-
-  // Select the right data based on asset type and stock data source
-  const getStockData = (): ChartDataState => {
-    if (stockDataSource === 'alpaca') {
-      return alpacaData;
-    }
-    return yahooData;
-  };
-
-  const data: ChartDataState = config.type === 'crypto' ? binanceData : getStockData();
+  const data: ChartDataState = config.type === 'crypto' ? binanceData : stockData;
 
   const displaySymbol = getDisplaySymbol(config.symbol, config.type);
   const priceFormatted = data.currentPrice > 0 ? formatPrice(data.currentPrice, config.symbol) : '--';

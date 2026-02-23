@@ -90,10 +90,10 @@ export function AboutModal({ isOpen, onClose }: AboutModalProps) {
             <div className="code-block">
               <code>
                 # Build for production{'\n'}
-                npm run build{'\n'}
+                bun run build{'\n'}
                 {'\n'}
                 # Serve the app{'\n'}
-                npx serve dist -l 3000{'\n'}
+                bun run dev{'\n'}
                 {'\n'}
                 # Run in kiosk mode{'\n'}
                 chromium-browser --kiosk http://localhost:3000

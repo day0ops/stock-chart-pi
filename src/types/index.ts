@@ -17,8 +17,6 @@ export interface LayoutConfig {
   rows: number;
 }
 
-export type StockDataSource = 'yahoo' | 'alpaca';
-
 export interface AlpacaCredentials {
   apiKey: string;
   apiSecret: string;
@@ -27,7 +25,6 @@ export interface AlpacaCredentials {
 export interface DashboardConfig {
   layout: LayoutConfig;
   charts: ChartConfig[];
-  stockDataSource: StockDataSource;
   alpacaCredentials: AlpacaCredentials;
 }
 
@@ -77,7 +74,6 @@ export type DashboardAction =
   | { type: 'UPDATE_CHART'; payload: ChartConfig }
   | { type: 'SET_CHART_DATA'; payload: { id: string; data: Partial<ChartDataState> } }
   | { type: 'TOGGLE_CONFIG' }
-  | { type: 'SET_STOCK_DATA_SOURCE'; payload: StockDataSource }
   | { type: 'SET_ALPACA_CREDENTIALS'; payload: AlpacaCredentials };
 
 // Binance kline response format

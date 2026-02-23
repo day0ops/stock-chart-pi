@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { searchSymbols, validateSymbol, getPopularSymbols } from '../services/symbolSearch';
 import type { SymbolInfo } from '../services/symbolSearch';
 import type { AssetType } from '../types';
+import { useDashboard } from '../context/DashboardContext';
 
 interface SymbolAutocompleteProps {
   value: string;
@@ -18,6 +19,9 @@ export function SymbolAutocomplete({
   type,
   placeholder = 'Search symbol...',
 }: SymbolAutocompleteProps) {
+  const { state } = useDashboard();
+  const { alpacaCredentials } = state.config;
+
   const [suggestions, setSuggestions] = useState<SymbolInfo[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -37,14 +41,19 @@ export function SymbolAutocomplete({
 
     setIsLoading(true);
     try {
-      const results = await searchSymbols(query, type);
+      const results = await searchSymbols(
+        query,
+        type,
+        alpacaCredentials?.apiKey,
+        alpacaCredentials?.apiSecret
+      );
       setSuggestions(results);
     } catch {
       setSuggestions([]);
     } finally {
       setIsLoading(false);
     }
-  }, [type]);
+  }, [type, alpacaCredentials]);
 
   // Debounced search
   useEffect(() => {
