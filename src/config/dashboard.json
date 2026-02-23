@@ -10,5 +10,6 @@
     { "id": "7", "symbol": "DOGEUSDT", "type": "crypto", "chartType": "candlestick", "interval": "15m", "refreshSeconds": 60 },
     { "id": "8", "symbol": "AVAXUSDT", "type": "crypto", "chartType": "candlestick", "interval": "15m", "refreshSeconds": 60 }
   ],
-  "finnhubApiKey": ""
+  "stockDataSource": "yahoo",
+  "alpacaCredentials": { "apiKey": "", "apiSecret": "" }
 }

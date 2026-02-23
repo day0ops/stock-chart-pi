@@ -17,10 +17,18 @@ export interface LayoutConfig {
   rows: number;
 }
 
+export type StockDataSource = 'yahoo' | 'alpaca';
+
+export interface AlpacaCredentials {
+  apiKey: string;
+  apiSecret: string;
+}
+
 export interface DashboardConfig {
   layout: LayoutConfig;
   charts: ChartConfig[];
-  finnhubApiKey: string;
+  stockDataSource: StockDataSource;
+  alpacaCredentials: AlpacaCredentials;
 }
 
 // OHLC data format for charts
@@ -69,7 +77,8 @@ export type DashboardAction =
   | { type: 'UPDATE_CHART'; payload: ChartConfig }
   | { type: 'SET_CHART_DATA'; payload: { id: string; data: Partial<ChartDataState> } }
   | { type: 'TOGGLE_CONFIG' }
-  | { type: 'SET_FINNHUB_KEY'; payload: string };
+  | { type: 'SET_STOCK_DATA_SOURCE'; payload: StockDataSource }
+  | { type: 'SET_ALPACA_CREDENTIALS'; payload: AlpacaCredentials };
 
 // Binance kline response format
 export interface BinanceKline {
@@ -82,13 +91,3 @@ export interface BinanceKline {
   closeTime: number;
 }
 
-// Finnhub candle response format
-export interface FinnhubCandle {
-  c: number[]; // Close prices
-  h: number[]; // High prices
-  l: number[]; // Low prices
-  o: number[]; // Open prices
-  s: string;   // Status
-  t: number[]; // Timestamps
-  v: number[]; // Volumes
-}
