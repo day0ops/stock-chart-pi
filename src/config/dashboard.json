@@ -1,0 +1,14 @@
+{
+  "layout": { "columns": 4, "rows": 2 },
+  "charts": [
+    { "id": "1", "symbol": "BTCUSDT", "type": "crypto", "chartType": "candlestick", "interval": "15m", "refreshSeconds": 60 },
+    { "id": "2", "symbol": "ETHUSDT", "type": "crypto", "chartType": "candlestick", "interval": "15m", "refreshSeconds": 60 },
+    { "id": "3", "symbol": "SOLUSDT", "type": "crypto", "chartType": "candlestick", "interval": "15m", "refreshSeconds": 60 },
+    { "id": "4", "symbol": "BNBUSDT", "type": "crypto", "chartType": "candlestick", "interval": "15m", "refreshSeconds": 60 },
+    { "id": "5", "symbol": "XRPUSDT", "type": "crypto", "chartType": "line", "interval": "1h", "refreshSeconds": 120 },
+    { "id": "6", "symbol": "ADAUSDT", "type": "crypto", "chartType": "line", "interval": "1h", "refreshSeconds": 120 },
+    { "id": "7", "symbol": "DOGEUSDT", "type": "crypto", "chartType": "candlestick", "interval": "15m", "refreshSeconds": 60 },
+    { "id": "8", "symbol": "AVAXUSDT", "type": "crypto", "chartType": "candlestick", "interval": "15m", "refreshSeconds": 60 }
+  ],
+  "finnhubApiKey": ""
+}
