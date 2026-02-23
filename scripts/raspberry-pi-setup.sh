@@ -89,6 +89,18 @@ echo ""
 # Step 4: Create systemd service for the web server
 echo -e "${GREEN}Step 4: Creating systemd service...${NC}"
 
+# Dynamically detect node path (works with nvm or system install)
+NODE_BIN_DIR=$(dirname "$(which node)")
+NPX_PATH="${NODE_BIN_DIR}/npx"
+
+if [ ! -x "$NPX_PATH" ]; then
+    echo -e "${RED}Error: npx not found at ${NPX_PATH}${NC}"
+    exit 1
+fi
+
+echo "  Node bin directory: ${NODE_BIN_DIR}"
+echo "  npx path: ${NPX_PATH}"
+
 SERVICE_FILE="/etc/systemd/system/stock-chartpi.service"
 sudo tee ${SERVICE_FILE} > /dev/null << EOF
 [Unit]
@@ -99,7 +111,8 @@ After=network.target
 Type=simple
 User=${USER}
 WorkingDirectory=${APP_DIR}
-ExecStart=/usr/bin/npx serve dist -l ${APP_PORT}
+Environment="PATH=${NODE_BIN_DIR}:/usr/local/bin:/usr/bin:/bin"
+ExecStart=${NPX_PATH} serve dist -l ${APP_PORT}
 Restart=always
 RestartSec=10
 
